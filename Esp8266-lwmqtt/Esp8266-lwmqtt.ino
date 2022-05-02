@@ -165,7 +165,7 @@ float bytesArr_to_float(char *serialBuffer){
   return data.asFloat;
 }
 
-void send(char *data, int len){
+void send(char *data, int len, String type){
   // Receiver Output Enable(RE) active LOW
   // Driver Output Enable (DE) active HIGH
   // To write, pull DE and RE HIGH 
@@ -181,11 +181,11 @@ void send(char *data, int len){
   digitalWrite(RE,!state);  //RE low = enabled - so that it can listen for the reply
   digitalWrite(DE,!state);  //DE low = disabled
   
-  receive();
+  receive(type);
 }
 
 
-void receive(){
+void receive(String type){
   char serialBuffer[9];
   int i = 0;
   // Receives MODBUS data
@@ -220,8 +220,8 @@ void receive(){
     }
     //convert data to float
     bytesArr_to_float(serialBuffer);   
-    mqqt_message_payload += toString(data.asFloat)+ ";" ;     
-    Serial.println(data.asFloat);
+    mqqt_message_payload += type +": " toString(data.asFloat)+ ";" ;     
+    Serial.println(type + ": "+ data.asFloat);
     //Serial.println(serialBuffer);
    
   }
