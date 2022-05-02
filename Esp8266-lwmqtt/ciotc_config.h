@@ -1,14 +1,14 @@
 // This file contains your configuration used to connect to Cloud IoT Core
 
 // WIFI
-const char* ssid = "Jenny.co.za - Fluffytrumpet";
-const char* password = "Unicornsexist";
+const char* ssid = "Your Wifi SSID";
+const char* password = "Your WIFI passwaord";
 
 // Cloud iot details.
-const char* project_id = "cloud-mqtt-348106";
-const char* location = "europe-west1";
-const char* registry_id = "TEST";
-const char* device_id = "Device";
+const char* project_id = "Check your Google Cloud account for details";
+const char* location = "";
+const char* registry_id = "";
+const char* device_id = "";
 
 // Configuration for NTP
 const char* ntp_primary = "time.google.com";
