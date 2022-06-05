@@ -99,6 +99,6 @@ def plot_data():
 
 
     data = pd.read_csv("Processes_data.csv", header=0, infer_datetime_format=True,
-                       parse_dates=['DateTime'], index_col=['DateTime'],dtype="float" )
+                       parse_dates=['DateTime'], index_col=['DateTime'], dtype="float")
 
     q = data.values

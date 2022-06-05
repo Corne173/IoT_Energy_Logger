@@ -1,17 +1,4 @@
-/******************************************************************************
- * Copyright 2018 Google
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *****************************************************************************/
+// *****************************************************************************/
 // This file contains static methods for API requests using Wifi / MQTT
 
 #include <ESP8266WiFi.h>
@@ -39,6 +26,7 @@ void messageReceivedAdvanced(MQTTClient *client, char topic[], char bytes[], int
   if (length > 0)// On message
   {
     Serial.printf("\n\r   Data: %s", bytes);
+    postFrequency = atof(bytes);
   }
   Serial.println();
 }
@@ -143,7 +131,8 @@ static void setupWifi()
     delay(100);
   }
 
-  configTime(0, 0, ntp_primary, ntp_secondary);
+  // the 2*3600 sets the time zone, 2+ GMT
+  configTime(2*3600, 0, ntp_primary, ntp_secondary);
   Serial.println("Waiting on time sync...");
   while (time(nullptr) < 1510644967)
   {
