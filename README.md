@@ -40,3 +40,11 @@ TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   
 
 - There is still an Interrupt Service Routine(ISR) that interrupts serial processes which leads to data loss. 
 Not sure how to disable an ESP 8266's global ISR or whether moving away from Software Serial will help?
+- Using the `DataFlow` service is very expensive especially at sub minute data collection interval. 
+- `DataFlow` is required as it acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
+As it uses a Virtual Machine to accomplish this, you are charge for the time you use this VM. 
+
+## Future Work
+- Move away from `DataFlow` service and create a local MQTT server using a **Raspberry Pi** and **Node Red**. 
+- Will still use `Google Cloud` service or some other free(ish) SQL server. 
+- Add a web server that displays current and past energy usage. 
