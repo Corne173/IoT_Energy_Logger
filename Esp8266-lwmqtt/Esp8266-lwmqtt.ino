@@ -18,10 +18,10 @@
 #include <stdio.h>
 
 
-#define RE        16  //D0      //MAX485 Receiver Enable pin 
-#define DE        5   //D1      //MAX485 Output Driver Enable pin 
-#define RX        4   //D2     
-#define TX        0   //D3  
+#define RE        16  //D0      //MAX485 Receiver Enable pin
+#define DE        5   //D1      //MAX485 Output Driver Enable pin
+#define RX        4   //D2
+#define TX        0   //D3
 
 #define UInt16    uint16_t
 
@@ -73,13 +73,13 @@ static unsigned long lastMillis = 0;
 
 //--------------------------------------------------------------------------
 
-union 
+union
     {
     byte asBytes[4];
     float asFloat;
     long asLong;
     double asDouble;
-    } data; 
+    } data;
 
 void flash_LED(int LedNumber,int flashTimes,int Speed){
 
@@ -95,7 +95,7 @@ String toString(float number){
 
   char string[10]; //size of the number
   sprintf(string, "%g", number);
-  
+
   return string;
 }
 
@@ -112,7 +112,7 @@ void setup()
 //  digitalWrite(LED_2,1);
 
   softSerial.begin(19200, SWSERIAL_8N1, RX, TX, false);
-  
+
   pinMode(RE,OUTPUT);
   pinMode(DE,OUTPUT);
 
@@ -134,78 +134,82 @@ void loop()
 
   delay(100); // <- fixes some issues with WiFi stability
   flash_LED(LED_1,2,50);
-  
+
   if (millis() - lastMillis > 1000)
   {
     digitalWrite(LED_1,1);                                            //Debug LED - Turns OFF when communicating with energy meter
-    
-    
-    send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral));
-    send(frequency,sizeof(frequency));  
-    send(real_power,sizeof(real_power));  
-    send(apparent_power,sizeof(apparent_power));  
-    send(active_energy_Import,sizeof(active_energy_Import));  
+
+    Serial.println(time(nullptr));
+    mqqt_message_payload = "";
+    send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral),"V");
+    send(frequency,sizeof(frequency),"f");
+    send(real_power,sizeof(real_power),"P");
+    send(apparent_power,sizeof(apparent_power),"S");
+    send(active_energy_Import,sizeof(active_energy_Import),"E");
 
     Serial.println(mqqt_message_payload);
     publishTelemetry(mqqt_message_payload);                           // Sends data to cloud MQTT server
     mqqt_message_payload = "";                 // Clears the message payload buffer for the next round
     delay(10);
     digitalWrite(LED_1,0);
-    lastMillis = millis(); 
-    
+    lastMillis = millis();
+
   }
 }
 
 
 //-------------------- Supporting functions----------------------------------------
 
-float bytesArr_to_float(char *serialBuffer){    
+float bytesArr_to_float(char *serialBuffer){
   // reverse the order because Adruino Nano & ESP 8266 is Little-Endian
-  for(int i = 0; i< 4; i++) data.asBytes[i] = serialBuffer[6-i];  
+  for(int i = 0; i< 4; i++) data.asBytes[i] = serialBuffer[6-i];
   return data.asFloat;
 }
 
 void send(char *data, int len, String type){
+  ESP.wdtDisable();
   // Receiver Output Enable(RE) active LOW
   // Driver Output Enable (DE) active HIGH
-  // To write, pull DE and RE HIGH 
+  // To write, pull DE and RE HIGH
 
   bool state = 1;
-  
+
   digitalWrite(RE,state);
   digitalWrite(DE,state);
-  
+
   softSerial.write(data,len);
 
- // Disable output driver and Enable receiver  
+ // Disable output driver and Enable receiver
   digitalWrite(RE,!state);  //RE low = enabled - so that it can listen for the reply
   digitalWrite(DE,!state);  //DE low = disabled
-  
+
   receive(type);
+  ESP.wdtEnable(0);
 }
 
 
 void receive(String type){
   char serialBuffer[9];
   int i = 0;
+  delay(20);                      //wait a bit for the meter to respond
   // Receives MODBUS data
   if (softSerial.available() > 0 )
   {
-    
-    //SDM230 replies with 9 bytes      
+
+    //SDM230 replies with 9 bytes
     //The first 3 bytes are overhead stuff
     //Next 4 bytes is - Data of type float
     //Last 2 bytes is modbus CRC16
-    
-     // Clear the buffer    
-    memset(serialBuffer, 0, 20);     
-    
-    lastMillis = millis(); 
+
+     // Clear the buffer
+    memset(serialBuffer, 0, 20);
+
+    lastMillis = millis();
     // read all bytes for the RX buffer
     while(softSerial.available() > 0 )
     {
       serialBuffer[i] = softSerial.read();
-      //Serial.println(serialBuffer[i],HEX);      
+      //Serial.println(serialBuffer[i],HEX);
       i++;
 
       // exists while loop iif it gets stuck
@@ -213,22 +217,25 @@ void receive(String type){
         {
           //flash_LED(LED_2,5,50);
           Serial.println("Stuck in the while loop");
-          
+
         }
-    
-          
+
+
     }
     //convert data to float
-    bytesArr_to_float(serialBuffer);   
-    mqqt_message_payload += type +": " toString(data.asFloat)+ ";" ;     
-    Serial.println(type + ": "+ data.asFloat);
+    float value = bytesArr_to_float( serialBuffer );
+    String dataMetric = toString(value);
+
+    mqqt_message_payload += type + ": " + dataMetric + " ;" ;
+
+    Serial.println(type +": " +  dataMetric + ";" );
     //Serial.println(serialBuffer);
-   
+
   }
 
   // delay give the energy meter time to process the next command. Meter does not respond if there is no delay
   delay(50);
-  
+
 }
 
 
