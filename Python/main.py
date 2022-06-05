@@ -1,5 +1,3 @@
-
-
 import argparse
 import json
 import sdm_modbus

@@ -2,19 +2,28 @@
 ESP8266 Modbus MQTT Google Cloud Energy Logger
 
 
+
 ## ESP 8266 - Node MCU
 Setup instructions and code found at https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino
 
 Code for Node MCU ESP8266 12E is found in [Esp8266-lwmqtt](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Esp8266-lwmqtt).
 
-Requires:
-Google Cloud IoT Core JWT by Gus Class
+Requires Arduino libraries: Search in Library manager
+"Google Cloud IoT Core JWT" by Gus Class
+"ESPSoftwareSerial" by Dirk Kaar
+"MQTT" by Joel Gaehwiler
 
-
-### NODE MCU1.0 12E Pinout 
+### NODE MCU1.0 12E Pinout   
 Because the pin numbers on the board ARE NOT THE SAME as the internal pin numbers.
 
 ![Pinout](https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/05/ESP8266-NodeMCU-kit-12-E-pinout-gpio-pin.png?quality=100&strip=all&ssl=1)
+
+Internal pin number referencing is used in Arduino script. See pinout.                              <br>
+Pin name    Board number        Internal pin number                                                 <br>
+RE          16                  D0                                                                  <br>
+DE          5                   D1                                                                  <br>
+RX          4                   D2                                                                  <br>
+TX          0                   D3                                                                  <br>
 
 
 

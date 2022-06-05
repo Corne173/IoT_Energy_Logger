@@ -102,3 +102,6 @@ def plot_data():
                        parse_dates=['DateTime'], index_col=['DateTime'], dtype="float")
 
     q = data.values
+
+if __name__ == "__main__":
+    list_blobs("MQTT")
