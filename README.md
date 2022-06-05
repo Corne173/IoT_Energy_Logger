@@ -10,7 +10,8 @@ Requires:
 Google Cloud IoT Core JWT by Gus Class
 
 
-NODE MCU1.0 12E Pinout 
+### NODE MCU1.0 12E Pinout 
+Because the pin numbers on the board ARE NOT THE SAME as the internal pin numbers.
 
 ![Pinout](https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/05/ESP8266-NodeMCU-kit-12-E-pinout-gpio-pin.png?quality=100&strip=all&ssl=1)
 
