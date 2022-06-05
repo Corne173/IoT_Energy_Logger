@@ -18,5 +18,8 @@ NODE MCU1.0 12E Pinout
 
 ## Energy Meter
 
-SMD230 Modbus made by Eastron
+
+[SMD230 Modbus made by Eastron]([/guides/content/editing-an-existing-page](https://www.aliexpress.com/item/32845403260.html?spm=a2g0o.productlist.0.0.799f2566qN7t5A&algo_pvid=e990826b-f171-4fc6-b30f-6c9e8352ca5d&algo_exp_id=e990826b-f171-4fc6-b30f-6c9e8352ca5d-1&pdp_ext_f=%7B%22sku_id%22%3A%2265104415839%22%7D&pdp_npi=2%40dis%21ZAR%21%21543.82%21543.82%21%21%21%21%402103399116544212040123485e3ca8%2165104415839%21sea))
+
+![SMD230 Product sheet](https://ae01.alicdn.com/kf/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj/201669291/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj.jpg?size=136937&height=1067&width=1000&hash=ccb6c38d63b40e63e373261727f7feaf)
 
