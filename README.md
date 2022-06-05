@@ -36,3 +36,7 @@ TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   
 
 ![SMD230 Product sheet](https://ae01.alicdn.com/kf/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj/201669291/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj.jpg?size=136937&height=1067&width=1000&hash=ccb6c38d63b40e63e373261727f7feaf)
 
+## Current Issues 
+
+- There is still an Interrupt Service Routine(ISR) that interrupts serial processes which leads to data loss. 
+Not sure how to disable an ESP 8266's global ISR or whether moving away from Software Serial will help?
