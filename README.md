@@ -11,13 +11,19 @@ ESP8266 Modbus MQTT Google Cloud Energy Logger.
   - Cloud Storage 
   - DataFlow
   - Compute Engine
-  
-<br>
-
+- Setup Pub/Sub Topic 
 - Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
-    - 
-    - 
-
+    - "Create a new job from Template"
+    - Give it a name, select a regionand select the template `Pub/Sub to Text Files on Cloud Storage`
+    - Required parameters:
+      - The **Pub/Sub topic name** can be found under the `Pub/Sub` tab in the left-hand panel. Click on the topic to open it,
+      and copy the content of the `Topic name`
+      - Assuming you've already created a bucket in `Cloud Storage`, the "output file directory in Cloud storage" must look something like `gs://<yourBucketName>`
+      - "Output filename prefix" is the name of the text file
+      - For "Temporary Location", just create a folder in your bucket called `temp`. Your location then becomes 
+      `gs://<yourBucketName>/temp`
+      - `Run Job`, navigate to the Jobs tab in Dataflow and check if the status says Running
+      
 ## ESP 8266 - Node MCU
 Setup instructions and code found at https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino
 
