@@ -3,7 +3,20 @@
 ---
 ESP8266 Modbus MQTT Google Cloud Energy Logger. 
 
+## Google Cloud platform setup
 
+- APIs to activate:
+  - PubSub
+  - IoT Core
+  - Cloud Storage 
+  - DataFlow
+  - Compute Engine
+  
+<br>
+
+- Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
+    - 
+    - 
 
 ## ESP 8266 - Node MCU
 Setup instructions and code found at https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino
@@ -41,8 +54,9 @@ TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   
 - There is still an Interrupt Service Routine(ISR) that interrupts serial processes which leads to data loss. 
 Not sure how to disable an ESP 8266's global ISR or whether moving away from Software Serial will help?
 - Using the `DataFlow` service is very expensive especially at sub minute data collection interval. 
-- `DataFlow` is required as it acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
-As it uses a Virtual Machine to accomplish this, you are charge for the time you use this VM. 
+`DataFlow` is required as it acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
+As it uses a Virtual Machine to accomplish this, you are charge for the time you use this VM. You can
+set the upload frequency by sending a `command` or `config` payload from the device tab in `IoT Core`.
 
 ## Future Work
 - Move away from `DataFlow` service and create a local MQTT server using a **Raspberry Pi** and **Node Red**. 
