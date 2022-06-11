@@ -44,7 +44,9 @@ Pin name  &emsp;  Board number    &emsp;    Internal pin number                 
 RE &emsp;&emsp;&emsp;&emsp;       16 &emsp;&emsp;&emsp;&emsp;&emsp; &emsp;              D0                                                                  <br>
 DE      &emsp;&emsp;&emsp;&emsp;    5     &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;              D1                                                                  <br>
 RX   &emsp;&emsp;&emsp;&emsp;      4 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;           D2                                                                  <br>
-TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;              D3                                                                  <br>
+TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;              D3             <br>
+<br>
+
 
 
 
@@ -53,18 +55,22 @@ TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   
 
 [SMD230 Modbus made by Eastron](https://www.aliexpress.com/item/32698830575.html?spm=a2g0o.productlist.0.0.799f2566qN7t5A&algo_pvid=e990826b-f171-4fc6-b30f-6c9e8352ca5d&algo_exp_id=e990826b-f171-4fc6-b30f-6c9e8352ca5d-2&pdp_ext_f=%7B%22sku_id%22%3A%2260671643988%22%7D&pdp_npi=2%40dis%21ZAR%21%21621.51%21621.51%21%21%21%21%402103399116544212040123485e3ca8%2160671643988%21sea)
 
-![SMD230 Product sheet](https://ae01.alicdn.com/kf/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj/201669291/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj.jpg?size=136937&height=1067&width=1000&hash=ccb6c38d63b40e63e373261727f7feaf)
+<img alt="SMD230 Product sheet" src="https://ae01.alicdn.com/kf/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj/201669291/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj.jpg?size=136937&amp;height=1067&amp;width=1000&amp;hash=ccb6c38d63b40e63e373261727f7feaf" width="500"/>
+
+
+
 
 ## Current Issues 
 
 - There is still an Interrupt Service Routine(ISR) that interrupts serial processes which leads to data loss. 
 Not sure how to disable an ESP 8266's global ISR or whether moving away from Software Serial will help?
 - Using the `DataFlow` service is very expensive especially at sub minute data collection interval. 
-`DataFlow` is required as it acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
-As it uses a Virtual Machine to accomplish this, you are charge for the time you use this VM. You can
-set the upload frequency by sending a `command` or `config` payload from the device tab in `IoT Core`.
+`DataFlow` acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
+As it uses a Virtual Machine to accomplish this, you are charged for the CPU time, RAM and storage that the VM uses.
+A better alternative is to use serverless `Cloud Functions`.
 
 ## Future Work
-- Move away from `DataFlow` service and create a local MQTT server using a **Raspberry Pi** and **Node Red**. 
-- Will still use `Google Cloud` service or some other free(ish) SQL server. 
+- Add local MQTT Server option
 - Add a web server that displays current and past energy usage. 
+- Add Google shell console commands or Python API to setup Google Cloud Platform faster.
+Also less chance to make a mistake or to forget a step.
