@@ -29,7 +29,8 @@ of 2 seconds using Dataflow results in a monthly bill exceeding $300.
       - Timeout : 30s 
       - Runtime service account : Select the one you created when you got the
       credentials json file. 
-      - Autoscalling - Max number of instances : 3  
+      - Autoscaling - Max number of instances : 3- you may need to add more if you're posting frequency is higher than 
+      the default (5s)
     - Code
       - Runtime: Python 3.7
       - Source code: Inline Editor
@@ -46,4 +47,3 @@ of 2 seconds using Dataflow results in a monthly bill exceeding $300.
     - `service_account.json` file which contains the credentials obtained when adding a 
     new `key` to the service account
 
-## Some extra det
