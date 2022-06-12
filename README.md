@@ -70,7 +70,7 @@ As it uses a Virtual Machine to accomplish this, you are charged for the CPU tim
 A better alternative is to use serverless `Cloud Functions`.
 
 ## Future Work
-- Add local MQTT Server option
-- Add a web server that displays current and past energy usage. 
+- Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
+- Add a web server/web page that displays current and past energy usage. 
 - Add Google shell console commands or Python API to setup Google Cloud Platform faster.
 Also less chance to make a mistake or to forget a step.
