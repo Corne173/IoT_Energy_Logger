@@ -55,6 +55,19 @@ TX &emsp;&emsp;&emsp; &emsp;     0 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   
 
 ## Energy Meter
 
+My project was completed using the SDM230 however I would rather recommend using a current transformer based meter such as the 
+[SDM120 CT](https://www.aliexpress.com/item/4000107698147.html?spm=a2g0o.store_pc_allProduct.8148356.14.44d911e8DRQ5fK&pdp_npi=2%40dis%21ZAR%21ZAR%20459.88%21ZAR%20459.88%21%21%21%21%21%402103399116550308657151591efc12%2110000000279420919%21sh). 
+Inline meters such as the SDM230 requires some rewiring of the distribution board using 16mm^2 wire if you intend on measuring
+the main incoming power. This can be a timely exercise and if the terminals are not tight as hell, you can cause a fire as a result of 
+the poor connection. 
+
+The SMD120 CT
+- requires half the space
+- no extra cabling to be purchase
+- is much safer as the full load of the house/office doesn't go through it
+- is much quicker to install
+- you do not have to disconnect the power to the whole building to install it
+
 
 [SMD230 Modbus made by Eastron](https://www.aliexpress.com/item/32698830575.html?spm=a2g0o.productlist.0.0.799f2566qN7t5A&algo_pvid=e990826b-f171-4fc6-b30f-6c9e8352ca5d&algo_exp_id=e990826b-f171-4fc6-b30f-6c9e8352ca5d-2&pdp_ext_f=%7B%22sku_id%22%3A%2260671643988%22%7D&pdp_npi=2%40dis%21ZAR%21%21621.51%21621.51%21%21%21%21%402103399116544212040123485e3ca8%2160671643988%21sea)
 
@@ -71,6 +84,8 @@ Not sure how to disable an ESP 8266's global ISR or whether moving away from Sof
 `DataFlow` acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
 As it uses a Virtual Machine to accomplish this, you are charged for the CPU time, RAM and storage that the VM uses.
 A better alternative is to use serverless `Cloud Functions`.
+- The MODBUS CRC16 calculation in firmware still need to be fixed. Modbus commands are hardcode with CRC already calculated
+Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort.
 
 ## Future Work
 - Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
