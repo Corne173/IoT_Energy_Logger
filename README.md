@@ -92,3 +92,8 @@ Its fine for my purposes, but when using a 3 phase energy meter, having the CRC 
 - Add a web server/web page that displays current and past energy usage. 
 - Add Google shell console commands or Python API to setup Google Cloud Platform faster.
 Also less chance to make a mistake or to forget a step.
+- Add Wifi manager so that you dont have to hardcode wifi credintials
+- Use another cloud function to auto setup a new MQTT device - Will take a bit of work to get right
+  - Will have to:
+    - ESD
+    -      
