@@ -98,7 +98,7 @@ Also less chance to make a mistake or to forget a step.
     - Modify Wifi manager sketch to give the option to specify details about the device
     - Add another cloud function triggered by HTTP, which creates a new registry(if device is in a different location)
     - Adds a new device to the registry(with given name)
-    - Creates private and public keys. Saves public key to server and sends private key over HTTPS
+    - Creates private and public keys. Saves public key to server and sends private key over HTTPS to ESP. Save private key to EPROM/flash
     - Cloud function: 
       - Creates a new bucket for new device
       - Creates new PubSub topic 
