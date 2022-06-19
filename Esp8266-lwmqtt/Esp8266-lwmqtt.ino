@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>   // ESP Software Serial
 #include <stdio.h>
-
-int postFrequency             = 5000;     // default posting frequency
+#include <CloudIoTCore.h>
+#include "esp8266_mqtt.h"
 
 #define RE        16  //D0      //MAX485 Receiver Enable pin 
 #define DE        5   //D1      //MAX485 Output Driver Enable pin 
@@ -12,36 +12,20 @@ int postFrequency             = 5000;     // default posting frequency
 
 SoftwareSerial softSerial;
 
-
 // Built in LED used for debugging without terminal. Both LEDs turn on when initialisation is successful    
 #define LED_1 2            // LED 1 turns off when communicating with energy meter. Normal operation LED will flash
 #define LED_2 16              
 
-#if defined(ARDUINO_SAMD_MKR1000) or defined(ESP32)
-#define __SKIP_ESP8266__
-#endif
+//--------------------------------------------------------------------------
 
-#if defined(ESP8266)
-#define __ESP8266_MQTT__
-#endif
-
-#ifdef __SKIP_ESP8266__
-
-#include <Arduino.h>
-
-void setup(){
-  Serial.begin(115200);
-}
-
-void loop(){
-  Serial.println("Hello World");
-}
-
-#endif
-
-#ifdef __ESP8266_MQTT__
-#include <CloudIoTCore.h>
-#include "esp8266_mqtt.h"
+// union used to convert data types, ie bytes to float
+union 
+    {
+    byte asBytes[4];
+    float asFloat;
+    long asLong;
+    double asDouble;
+    } data; 
 
 // ------------------------ VARIABLES------------------------------------
 
@@ -57,53 +41,29 @@ String current_unix_time      = "";
 
 static unsigned long lastMillis = 0;
 
-//--------------------------------------------------------------------------
-
-// union used to convert data types, ie bytes to float
-union 
-    {
-    byte asBytes[4];
-    float asFloat;
-    long asLong;
-    double asDouble;
-    } data; 
-
-void flash_LED(int LedNumber,int flashTimes,int Speed){
-
-  bool state = 0;
-  for (int i = 0;i<2*flashTimes;i++){
-      delay(Speed);
-      digitalWrite(DE,!state);
-      delay(Speed);
-        }
-}
 
 //---------------------    SETUP  -----------------------------------------------
 
 void setup()
 {
-  // put your setup code here, to run once:
-  Serial.begin(19200);
-  setupCloudIoT(); // Creates globals for MQTT
+  Serial.begin(19200);                                    // for debugging
+  softSerial.begin(19200, SWSERIAL_8N1, RX, TX, false);   // UART - MODBUS 
+  
+  setupCloudIoT();                                        // Creates globals for MQTT
   pinMode(LED_1, OUTPUT);
   digitalWrite(LED_1,1);
 //  pinMode(LED_2, OUTPUT);
 //  digitalWrite(LED_2,1);
 
-  softSerial.begin(19200, SWSERIAL_8N1, RX, TX, false);
-  
-  pinMode(RE,OUTPUT);
-  pinMode(DE,OUTPUT);
+  pinMode(RE,OUTPUT);     //RS485 read enable pin                         
+  pinMode(DE,OUTPUT);     //RS485 write enable pin     
 
 //  Enable trancever listening
   digitalWrite(RE,0);
   digitalWrite(DE,0);
-
-  Serial.println("Meter has staterd");
 }
 
 // -----------------  MAIN LOOP ---------------------------------------------
-
 void loop()
 {
   if (!mqtt->loop())
@@ -112,15 +72,11 @@ void loop()
   }
 
   delay(100);                                                         // delay fixes some issues with WiFi stability
-  flash_LED(LED_1,2,50);
   
   if (millis() - lastMillis > postFrequency)                          // check if the last time a payload was sent was longer than x miliseconds ago
   {
     digitalWrite(LED_1,1);                                           // Debug LED 1 - Turns ON when successfully connected to Wifi 
-    
     current_unix_time = intToString( time(nullptr));                 // Debug LED 2 - Turns ON when successfully connected MQTT server
-    Serial.println(current_unix_time);
-    
     mqqt_message_payload = "";                                       // Clears the message payload 
     send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral),"V");
     send(frequency,sizeof(frequency),"f");  
@@ -129,15 +85,13 @@ void loop()
     send(active_energy_Import,sizeof(active_energy_Import),"E");  
     mqqt_message_payload += current_unix_time;                        // adds unix time to msg payload
     //Serial.println(mqqt_message_payload);                           // debug message
-    publishTelemetry(mqqt_message_payload);                           // Sends data to cloud MQTT server
-    mqqt_message_payload = "";                                        // Clears the message payload buffer for the next round
-    delay(10);      
+    publishTelemetry(mqqt_message_payload);                         // Sends data to cloud MQTT server
+    mqqt_message_payload = "";                                        // Clears the message payload buffer for the next round    
     digitalWrite(LED_1,0);                                            // Turns debug LED ON to indicate energy coms completed
     lastMillis = millis();                                            // setups the last time a payload was sent
     
   }
 }
-
 
 //-------------------- Supporting functions----------------------------------------
 // converts float to string
@@ -150,7 +104,6 @@ String floatToString(float number){
 
 // converts float to string
 String intToString(int number){
-
   char string[12]; //size of the number
   sprintf(string, "%d", number); // can also use itoa
   return string;
@@ -164,10 +117,11 @@ float bytesArr_to_float(char *serialBuffer){
   return data.asFloat;
 }
 
+//--------------------------------- Request DATA from meter ---------------------------------------------
 // sends commands to energy meter and automatically listens for response. Watchdog timer 
 void send(char *data, int len, String type){
-  ESP.wdtDisable();   // disables WDT. Not sure if it does what it intends, but sometimes serial operation is interupted which leads to data loss. 
-  
+  noInterrupts();
+ 
   // Receiver Output Enable(RE) active LOW
   // Driver Output Enable (DE) active HIGH
   // To write, pull DE and RE HIGH 
@@ -180,11 +134,12 @@ void send(char *data, int len, String type){
   digitalWrite(RE,!state);                     //RE low = enabled - so that it can listen for the reply
   digitalWrite(DE,!state);                     //DE low = disabled
   receive(type);                                // listens for response
-  ESP.wdtEnable(0);
+  interrupts();
 }
 
-
+//--------------------------------- Listen for DATA from meter ---------------------------------------------
 void receive(String type){
+  noInterrupts();
   char serialBuffer[9];
   int i = 0;
   delay(20);                      //wait a bit for the meter to respond
@@ -206,7 +161,7 @@ void receive(String type){
       //Serial.println(serialBuffer[i],HEX);   //debug, print as bytes   
       i++;
 
-      if (millis() - lastMillis > 100)        // exists while loop iif it gets stuck
+      if (millis() - lastMillis > 300)        // exists while loop iif it gets stuck
         {
           //flash_LED(LED_2,5,50);
           Serial.println("Stuck in the while loop");
@@ -221,11 +176,8 @@ void receive(String type){
     
     //Serial.println(type +": " +  dataMetric + ";" );  // for debugging
   }
-
+  interrupts();
+  //Serial.println(data.asFloat);                       // for debugging
   // delay gives the energy meter time to process the next command. Meter does not respond if there is no delay
   delay(50);
 }
-
-
-
-#endif

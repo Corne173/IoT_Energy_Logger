@@ -96,29 +96,18 @@ union
 void loop()
 {
 
-  send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral));
-  send(frequency,sizeof(frequency));  
-  send(current,sizeof(current));  
+  //send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral));
+  //send(frequency,sizeof(frequency));  
+  //send(current,sizeof(current));  
   send(real_power,sizeof(real_power));
-  send(apparent_power,sizeof(apparent_power));
-  send(active_energy_Import,sizeof(active_energy_Import));
+  //send(apparent_power,sizeof(apparent_power));
+  //send(active_energy_Import,sizeof(active_energy_Import));
   
-  while(Serial.available() > 0 )
-  {
-    ESP.wdtFeed();
-    digitalWrite(LED,1); 
-    Serial.println("Serial input received");    
-    String result = Serial.readString();
-    send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral));
-    Serial.println(result);
-    digitalWrite(LED,0);
-    break; 
-  }
 
-  receive();
+  //receive();
   digitalWrite(LED,1);
-  delay(100); // need to wait until the TX buffer has sent all the data - to slow things down  
-  digitalWrite(LED,0);  
+  delay(200); // need to wait until the TX buffer has sent all the data - to slow things down  
+  
 }
 
 float bytesArr_to_float(char *serialBuffer){    
@@ -137,6 +126,7 @@ void send(char *data, int len){
   digitalWrite(RE,state);
   digitalWrite(DE,state);
   
+  //Serial.write(data,len);
   softSerial.write(data,len);
 
  // Disable output driver and Enable receiver  
@@ -151,7 +141,7 @@ void receive(){
   char serialBuffer[9];
   int i = 0;
   // Receives MODBUS data
-  if (softSerial.available() > 0 )
+  if (Serial.available() > 0 )
   {
     //SDM230 replies with 9 bytes      
     //The first 3 bytes are overhead stuff
@@ -160,21 +150,23 @@ void receive(){
          
 
     // read all bytes for the RX buffer
-    while(softSerial.available() > 0 )
+    while(Serial.available() > 0 )
     {
-      serialBuffer[i] = softSerial.read();
+      serialBuffer[i] = Serial.read();
       //Serial.println(serialBuffer[i],HEX);      
       i++;
+      digitalWrite(LED,0);  
     }
     //convert data to float
     bytesArr_to_float(serialBuffer);        
-    Serial.println(data.asFloat);
+    
     
     // Clear the buffer    
     memset(serialBuffer, 0, 20);
   }
 
   // delay give the energy meter time to process the next command. Meter does not respond if there is no delay
-  delay(50);
+  Serial.println(data.asFloat);
+  delay(100);
   
 }

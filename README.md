@@ -84,7 +84,7 @@ Not sure how to disable an ESP 8266's global ISR or whether moving away from Sof
 `DataFlow` acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
 As it uses a Virtual Machine to accomplish this, you are charged for the CPU time, RAM and storage that the VM uses.
 A better alternative is to use serverless `Cloud Functions`.
-- The MODBUS CRC16 calculation in firmware still need to be fixed. Modbus commands are hardcode with CRC already calculated
+- The MODBUS CRC16 calculation in firmware still need to be fixed. Modbus commands are hardcode with CRC already calculated.
 Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort.
 
 ## Future Work

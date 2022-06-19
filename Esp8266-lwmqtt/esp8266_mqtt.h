@@ -4,9 +4,6 @@
 #include <ESP8266WiFi.h>
 #include "FS.h"
 
-// You need to set certificates to All SSL cyphers and you may need to
-// increase memory settings in Arduino/cores/esp8266/StackThunk.cpp:
-//   https://github.com/esp8266/Arduino/issues/6811
 #include "WiFiClientSecureBearSSL.h"
 #include <time.h>
 
@@ -16,8 +13,9 @@
 #include <CloudIoTCoreMqtt.h>
 #include "ciotc_config.h" // Wifi configuration here
 
+int postFrequency             = 5000;     // default posting frequency
 
-// !!REPLACEME!!
+
 // The MQTT callback function for commands and configuration updates
 // Place your message handler code here.
 void messageReceivedAdvanced(MQTTClient *client, char topic[], char bytes[], int length)
