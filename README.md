@@ -92,3 +92,14 @@ Its fine for my purposes, but when using a 3 phase energy meter, having the CRC 
 - Add a web server/web page that displays current and past energy usage. 
 - Add Google shell console commands or Python API to setup Google Cloud Platform faster.
 Also less chance to make a mistake or to forget a step.
+- Add Wifi manager so that you dont have to hardcode wifi credintials
+- Auto setup a new MQTT device - Will take a bit of work to get right
+  - Will have to:
+    - Modify Wifi manager sketch to give the option to specify details about the device
+    - Add another cloud function triggered by HTTP, which creates a new registry(if device is in a different location)
+    - Adds a new device to the registry(with given name)
+    - Creates private and public keys. Saves public key to server and sends private key over HTTPS to ESP. Save private key to EPROM/flash
+    - Cloud function: 
+      - Creates a new bucket for new device
+      - Creates new PubSub topic 
+      - Creates new cloud function that acts as a pipeline between the PubSub data and cloud storage. OORRRR use the same cloud function pipeline and pass an extra argument to it(the topic name? device name?) that directs the output to the correct bucket.
