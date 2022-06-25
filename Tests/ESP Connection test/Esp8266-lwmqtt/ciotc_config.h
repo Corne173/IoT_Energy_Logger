@@ -1,8 +1,8 @@
 // This file contains your configuration used to connect to Cloud IoT Core
 
-// WIFI
-const char* ssid = "Jenny.co.za - Fluffytrumpet";
-const char* password = "Unicornsexist";
+// WIFI Credentials - Now handled using WifiManager
+//const char* ssid = "";
+//const char* password = "";
 
 // Cloud iot details.
 const char* project_id = "mqtt-352311";
