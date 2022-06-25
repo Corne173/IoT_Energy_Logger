@@ -103,3 +103,5 @@ Also less chance to make a mistake or to forget a step.
       - Creates a new bucket for new device
       - Creates new PubSub topic 
       - Creates new cloud function that acts as a pipeline between the PubSub data and cloud storage. OORRRR use the same cloud function pipeline and pass an extra argument to it(the topic name? device name?) that directs the output to the correct bucket.
+
+    
