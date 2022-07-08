@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>   // ESP Software Serial
 #include <stdio.h>
-#include <CloudIoTCore.h>
+//#include <CloudIoTCore.h>
 #include "esp8266_mqtt.h"
 
 #define RE        16  //D0      //MAX485 Receiver Enable pin 
@@ -9,13 +9,12 @@
 #define TX        0   //D3  
 
 #define UInt16    uint16_t
-
+#define RESET_PIN 14 //D5
 SoftwareSerial softSerial;
 
 // Built in LED used for debugging without terminal. Both LEDs turn on when initialisation is successful    
 #define LED_1 2            // LED 1 turns off when communicating with energy meter. Normal operation LED will flash
 #define LED_2 16              
-
 //--------------------------------------------------------------------------
 
 // union used to convert data types, ie bytes to float
@@ -31,12 +30,49 @@ union
 
 String mqqt_message_payload = "";
 
-char voltage_A_line_neutral[] = {0x01,0x04,0x00,0x00,0x00,0x02,0x71,0xCB};
+/* 
+ 
+    MODBUS Protocol Message Format - 32 bit IEEE 754 floating point format
+    A =  Slave address of the SDM230 - Default is 0x01
+    B =  Function code - 0x04=Holding Registers, 0x03=Input Registers
+    C =  High byte register address
+    D =  Low byte register address
+    E =  Number of registers to read high byte - usually 0x00
+    F =  Number of regsiters to read low byte - usually 0x02 since we onyl want to to read 1 regsiter
+    G =  CRC low byte - I dont know why, but its swapped around
+    H =  CRC high byte
+
+ */
+
+// List of commands with CRC - could not get the ModRTU_CRC to work so... here we are
+//                                A    B    C    D    E    F    G    H
+char V_a[]                 = {0x01,0x04,0x00,0x00,0x00,0x02,0x71,0xCB};
+char V_b[]                 = {0x01,0x04,0x00,0x02,0x00,0x02,0xD0,0x0B};
+char V_c[]                 = {0x01,0x04,0x00,0x04,0x00,0x02,0x30,0x0A};
+
+char P_a[]             = {0x01,0x04,0x00,0x0C,0x00,0x02,0xB1,0xC8};
+char P_b[]             = {0x01,0x04,0x00,0x0E,0x00,0x02,0x10,0x08};
+char P_c[]             = {0x01,0x04,0x00,0x10,0x00,0x02,0x70,0x0E};
+
+char Q_a[]             = {0x01,0x04,0x00,0x18,0x00,0x02,0xF1,0xCC};
+char Q_b[]             = {0x01,0x04,0x00,0x1A,0x00,0x02,0x0C,0x50};
+char Q_c[]             = {0x01,0x04,0x00,0x1C,0x00,0x02,0xB0,0x0D};
+
+char S_a[]             = {0x01,0x04,0x00,0x12,0x00,0x02,0xD1,0xCE};
+char S_b[]             = {0x01,0x04,0x00,0x14,0x00,0x02,0x31,0xCF};
+char S_c[]             = {0x01,0x04,0x00,0x16,0x00,0x02,0x90,0x0F};
+
+char E_a_import[]         = {0x01,0x04,0x01,0x5A,0x00,0x02,0x50,0x24};
+char E_b_import[]         = {0x01,0x04,0x01,0x5C,0x00,0x02,0xB0,0x25};
+char E_c_import[]         = {0x01,0x04,0x01,0x5E,0x00,0x02,0x11,0xE5};
+
+char E_total_import[]     = {0x01,0x04,0x00,0x48,0x00,0x02,0xF1,0xDD};
+
 char frequency[]              = {0x01,0x04,0x00,0x46,0x00,0x02,0x90,0x1E};
+
 char current[]                = {0x01,0x04,0x00,0x06,0x00,0x02,0x91,0xCA};
-char real_power[]             = {0x01,0x04,0x00,0x0C,0x00,0x02,0xB1,0xC8};
-char apparent_power[]         = {0x01,0x04,0x00,0x12,0x00,0x02,0xD1,0xCE};
-char active_energy_Import[]   = {0x01,0x04,0x00,0x48,0x00,0x02,0xF1,0xDD};
+
+
 String current_unix_time      = "";
 
 static unsigned long lastMillis = 0;
@@ -46,12 +82,13 @@ static unsigned long lastMillis = 0;
 
 void setup()
 {
-  Serial.begin(19200);                                    // for debugging
-  softSerial.begin(19200, SWSERIAL_8N1, RX, TX, false);   // UART - MODBUS 
+  Serial.begin(38400);                                    // for debugging
+  softSerial.begin(38400, SWSERIAL_8N1, RX, TX, false);   // UART - MODBUS 
   
   setupCloudIoT();                                        // Creates globals for MQTT
   pinMode(LED_1, OUTPUT);
   digitalWrite(LED_1,1);
+  pinMode(RESET_PIN, INPUT_PULLUP);
 //  pinMode(LED_2, OUTPUT);
 //  digitalWrite(LED_2,1);
 
@@ -78,19 +115,29 @@ void loop()
     digitalWrite(LED_1,1);                                           // Debug LED 1 - Turns ON when successfully connected to Wifi 
     current_unix_time = intToString( time(nullptr));                 // Debug LED 2 - Turns ON when successfully connected MQTT server
     mqqt_message_payload = "";                                       // Clears the message payload 
-    send(voltage_A_line_neutral,sizeof(voltage_A_line_neutral),"V");
-    send(frequency,sizeof(frequency),"f");  
-    send(real_power,sizeof(real_power),"P");  
-    send(apparent_power,sizeof(apparent_power),"S");  
-    send(active_energy_Import,sizeof(active_energy_Import),"E");  
+    send(V_a,sizeof(V_a));
+    send(V_b,sizeof(V_b));
+    send(V_c,sizeof(V_c));
+
+    send(P_a,sizeof(P_a));
+    send(P_b,sizeof(P_b));
+    send(P_c,sizeof(P_c));
+    
+    send(E_a_import,sizeof(E_a_import));
+    send(E_b_import,sizeof(E_b_import));
+    send(E_c_import,sizeof(E_c_import));
+    
+    send(E_total_import,sizeof(E_total_import));
+    
     mqqt_message_payload += current_unix_time;                        // adds unix time to msg payload
-    //Serial.println(mqqt_message_payload);                           // debug message
+    Serial.println(mqqt_message_payload);                           // debug message
     publishTelemetry(mqqt_message_payload);                         // Sends data to cloud MQTT server
     mqqt_message_payload = "";                                        // Clears the message payload buffer for the next round    
     digitalWrite(LED_1,0);                                            // Turns debug LED ON to indicate energy coms completed
     lastMillis = millis();                                            // setups the last time a payload was sent
     
   }
+  checkButton();
 }
 
 //-------------------- Supporting functions----------------------------------------
@@ -109,7 +156,6 @@ String intToString(int number){
   return string;
 }
 
-
 // Reverses the byte order and uses the union operator to convert from byte to float
 float bytesArr_to_float(char *serialBuffer){    
   // reverse the order because Adruino Nano & ESP 8266 is Little-Endian
@@ -119,9 +165,7 @@ float bytesArr_to_float(char *serialBuffer){
 
 //--------------------------------- Request DATA from meter ---------------------------------------------
 // sends commands to energy meter and automatically listens for response. Watchdog timer 
-void send(char *data, int len, String type){
-  noInterrupts();
- 
+void send(char *data, int len){
   // Receiver Output Enable(RE) active LOW
   // Driver Output Enable (DE) active HIGH
   // To write, pull DE and RE HIGH 
@@ -133,18 +177,17 @@ void send(char *data, int len, String type){
   softSerial.write(data,len);                                    
   digitalWrite(RE,!state);                     //RE low = enabled - so that it can listen for the reply
   digitalWrite(DE,!state);                     //DE low = disabled
-  receive(type);                                // listens for response
-  interrupts();
+  receive();                                // listens for response
+
 }
 
 //--------------------------------- Listen for DATA from meter ---------------------------------------------
-void receive(String type){
-  noInterrupts();
+void receive(){
   char serialBuffer[9];
   int i = 0;
   delay(20);                      //wait a bit for the meter to respond
   // Receives MODBUS data
-  if (softSerial.available() > 0 )              // Check if bytes has been received, if it has, enter while loop and read all bytes
+  if (Serial.available() > 0 )              // Check if bytes has been received, if it has, enter while loop and read all bytes
   {                                             // usually a terminating byte is needed as the while loop reads bytes faster than its received which causes the while  
                                                 // condition to become false since there is no more bytes in the RX buffer. But this works as is. 
     //SDM230 replies with 9 bytes      
@@ -155,9 +198,9 @@ void receive(String type){
     memset(serialBuffer, 0, 10);                // Clear the receiving buffer    
     lastMillis = millis();                      // setups timer to exit while loop or else WTD will reset the ESP
    
-    while(softSerial.available() > 0 )         // read all bytes for the RX buffer
+    while(Serial.available() > 0 )         // read all bytes for the RX buffer
     {
-      serialBuffer[i] = softSerial.read();
+      serialBuffer[i] = Serial.read();
       //Serial.println(serialBuffer[i],HEX);   //debug, print as bytes   
       i++;
 
@@ -176,8 +219,28 @@ void receive(String type){
     
     //Serial.println(type +": " +  dataMetric + ";" );  // for debugging
   }
-  interrupts();
+
   //Serial.println(data.asFloat);                       // for debugging
   // delay gives the energy meter time to process the next command. Meter does not respond if there is no delay
   delay(50);
+}
+
+
+void checkButton(){
+  // check for button press
+  if ( digitalRead(RESET_PIN) == LOW ) {
+    // poor mans debounce/press-hold, code not ideal for production
+    delay(50);
+    if( digitalRead(RESET_PIN) == LOW ){
+      Serial.println("Button Pressed");
+      // still holding button for 3000 ms, reset settings, code not ideaa for production
+      delay(3000); // reset delay hold
+      if( digitalRead(RESET_PIN) == LOW ){
+        Serial.println("Button Held");
+        Serial.println("Erasing Config, restarting");
+        wm.resetSettings();
+        ESP.restart();
+      }
+    }
+  }
 }

@@ -1,14 +1,14 @@
 // This file contains your configuration used to connect to Cloud IoT Core
 
 // WIFI
-const char* ssid = "Jenny.co.za - Fluffytrumpet";
-const char* password = "Unicornsexist";
+//const char* ssid = "Jenny.co.za - Fluffytrumpet";
+//const char* password = "Unicornsexist";
 
 // Cloud iot details.
 const char* project_id = "mqtt-352311";
 const char* location = "europe-west1";
-const char* registry_id = "MQTT_Registry";
-const char* device_id = "energy_device_1";
+const char* registry_id = "Braby_registry";
+const char* device_id = "Braby_energy_meter";
 
 // Configuration for NTP
 const char* ntp_primary = "time.google.com";
@@ -22,7 +22,7 @@ const char* ntp_secondary = "pool.ntp.org";
 // of hex digits). If it's bigger and it starts with "00:" delete the "00:". If
 // it's smaller add "00:" to the start. If it's too big or too small something
 // is probably wrong with your key.
-const unsigned char private_key[] = {0x63,0xd1,0xd2,0x60,0x5b,0x32,0x38,0x26,0x85,0x6c,0xa0,0x3b,0x28,0x9a,0xd1,0xcc,0xe5,0x26,0x3e,0x0f,0x5b,0xe1,0xb8,0x2b,0x31,0x61,0xf9,0xba,0x96,0xd3,0xee,0xd9};
+const unsigned char private_key[] = {0x8e,0x5b,0xc1,0x62,0x26,0x31,0xcb,0xf2,0x1a,0x21,0xc0,0xac,0x90,0xd4,0xa8,0xac,0x12,0xb5,0xc9,0x1c,0xce,0x14,0x50,0x14,0x37,0xb0,0x20,0xe9,0xe7,0x5a,0x5e,0xbc};
 
 // Time (seconds) to expire token += 20 minutes for drift
 const int jwt_exp_secs = 3600; // Maximum 24H (3600*24)

@@ -3,7 +3,7 @@
 
 #include <ESP8266WiFi.h>
 #include "FS.h"
-
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include "WiFiClientSecureBearSSL.h"
 #include <time.h>
 
@@ -15,6 +15,7 @@
 
 int postFrequency             = 5000;     // default posting frequency
 
+WiFiManager wm;
 
 // The MQTT callback function for commands and configuration updates
 // Place your message handler code here.
@@ -95,7 +96,6 @@ static void setupCertAndPrivateKey()
     Serial.println("Failed to mount file system");
     return;
   }
-
   readDerCert("/gtsltsr.crt"); // primary_ca.pem
   readDerCert("/GSR4.crt"); // backup_ca.pem
   netClient.setTrustAnchors(&certList);
@@ -115,21 +115,25 @@ static void setupCertAndPrivateKey()
   } else {
     Serial.println("Failed to open private-key.der");
   }
-
   SPIFFS.end();
 }
 
 static void setupWifi()
 {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.println("\n\r\n\rConnecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(100);
-  }
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+  
+  bool res;
+  res = wm.autoConnect("AutoConnectAP","password"); // password protected ap
 
-  // the 2*3600 sets the time zone, 2+ GMT
+  while(!res){
+    Serial.println("Failed to connect");
+    digitalWrite(2,1);
+    delay(100);
+    digitalWrite(2,0);
+    delay(100);
+}
+
+  // the 2*3600 sets the time zone, +2 GMT
   configTime(2*3600, 0, ntp_primary, ntp_secondary);
   Serial.println("Waiting on time sync...");
   while (time(nullptr) < 1510644967)
