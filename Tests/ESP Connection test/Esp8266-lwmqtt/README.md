@@ -18,8 +18,8 @@ should boot up broadcast an access point with the following details.
     SSID:       AutoConnectAP
     Password:   password
 
-Got to the browser enter `192.168.4.1` and select your network. Check 
-your terminal for status.
+Go to the browser and enter `192.168.4.1`. Select your network from the list and enter the password. Check 
+your terminal for status. LED should start flashing meaning it is successfully transmitting data. 
 
 
 
