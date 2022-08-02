@@ -1,23 +1,35 @@
 # IoT-Energy-Logger
 
 ---
-ESP8266 Modbus MQTT Google Cloud Energy Logger. 
+Prototype ESP8266 Modbus MQTT Google Cloud Energy Logger. 
 
 ## Overview
 ![Overvew diagram](./Datasheets/System%20Diagram.png)
 
 ## Google Cloud platform setup
 
-- APIs to activate:
-  - PubSub
-  - IoT Core
-  - Cloud Storage 
-  - DataFlow
-  - Compute Engine
-- Setup Pub/Sub Topic 
+- The very first step is to activate the APIs by going to `APIs and Services` and enabling the following:
+  - PubSub (Required)
+  - IoT Core (Required)
+  - Cloud Functions (Optional but this is the best(cheapest) way to go)
+  - BigQuery (Optional but this makes the most sense for datastorage)
+  - Cloud Storage (Optional - Application dependant)
+  - DataFlow (Optional - Application dependant)
+  - Compute Engine (Optional - Application dependant)
+
+If things dont work, dont worry, you'll receive helpful debug messages from the API that will remind you.
+
+Now that the APIs are enabled, set up the Cloud Core Iot functionality which is responsible for
+handling the incoming MQTT messages. 
+- To set up `Cloud Core` you need to:
+  - Create a new Registry with a name of your choosing
+  - Create a new Device with a name of your choosing. This "device" will be the IoT device you are adding, in this case an ESP.
+
+
+
 - Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
     - "Create a new job from Template"
-    - Give it a name, select a regionand select the template `Pub/Sub to Text Files on Cloud Storage`
+    - Give it a name, select a region, select the template `Pub/Sub to Text Files on Cloud Storage`
     - Required parameters:
       - The **Pub/Sub topic name** can be found under the `Pub/Sub` tab in the left-hand panel. Click on the topic to open it,
       and copy the content of the `Topic name`
@@ -32,13 +44,13 @@ Setup instructions and code found at https://github.com/GoogleCloudPlatform/goog
 
 Code for Node MCU ESP8266 12E is found in [Esp8266-lwmqtt](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Esp8266-lwmqtt).
 
-Requires Arduino libraries: Search in Library manager <br>
+Firmware will not compile unless you have the following Arduino libraries installed: Search in Library manager <br>
 **"Google Cloud IoT Core JWT"** by Gus Class    <br>
-**"ESPSoftwareSerial"** by Dirk Kaar    <br>
+**"ESPSoftwareSerial"** by Dirk Kaar   (may be removed in future versions of this project) <br>
 **"MQTT"** by Joel Gaehwiler    <br>
 
 ### NODE MCU1.0 12E Pinout   
-Because the pin numbers on the board ARE NOT THE SAME as the internal pin numbers.
+Because the pin numbers on the board ARE NOT THE SAME as the internal pin numbers, please take note of the pinout below
 
 ![Pinout](https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/05/ESP8266-NodeMCU-kit-12-E-pinout-gpio-pin.png?quality=100&strip=all&ssl=1)
 
@@ -78,19 +90,24 @@ The SMD120 CT
 
 ## Current Issues 
 
-- There is still an Interrupt Service Routine(ISR) that interrupts serial processes which leads to data loss. 
-Not sure how to disable an ESP 8266's global ISR or whether moving away from Software Serial will help?
-- Using the `DataFlow` service is very expensive especially at sub minute data collection interval. 
+- I suspect that there is an Interrupt Service Routine(ISR) from the Wifi operations that interrupts serial processes 
+which leads to data loss. This is an intermittent issue but one that requires attention. Disabling the global 
+ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial.
+- Using the `DataFlow` service is very expensive especially at sub minute data collection interval(lol basically any interval). 
 `DataFlow` acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
 As it uses a Virtual Machine to accomplish this, you are charged for the CPU time, RAM and storage that the VM uses.
 A better alternative is to use serverless `Cloud Functions`.
 - The MODBUS CRC16 calculation in firmware still need to be fixed. Modbus commands are hardcode with CRC already calculated.
-Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort.
+Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort. 
+As it stands now, it requires a quirky serial print of the modbus command in hex format for it to work???... why the F, could not fathom
+- When there is a power interruption and your router reboots, the ESP will not be able to find the SSID of your network
+ and it will cause the ESP to hang and not join your network when the router has rebooted. Pressing issue if you're in SA
 
 ## Future Work
 - Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
-- Add a web server/web page that displays current and past energy usage. 
-- Add Google shell console commands or Python API to setup Google Cloud Platform faster.
+- Add implementation for Raspberry Pi
+- Add a web server/web page that displays current and past energy usage with some analytics and trends.
+- Add Python API to setup Google Cloud Platform faster.
 Also less chance to make a mistake or to forget a step.
 - Add Wifi manager so that you dont have to hardcode wifi credintials
 - Auto setup a new MQTT device - Will take a bit of work to get right
@@ -103,5 +120,5 @@ Also less chance to make a mistake or to forget a step.
       - Creates a new bucket for new device
       - Creates new PubSub topic 
       - Creates new cloud function that acts as a pipeline between the PubSub data and cloud storage. OORRRR use the same cloud function pipeline and pass an extra argument to it(the topic name? device name?) that directs the output to the correct bucket.
-
+- Add PubSub commands to select which energy parameters to read.
     

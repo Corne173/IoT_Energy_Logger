@@ -12,6 +12,7 @@
     - Navigate into the newly created service account, goto the `KEYS` tab and add a
     `JSON` key. 
     - Download the json file. The content of this file will be used when creating the cloud function
+    - Its recommend to create a custom service account for this purpose and limit the scopes to only
 - ### Create `Cloud Function`
   - Navigate to the `Cloud Function` tab
   - `+ CREATE FUNCTION`
