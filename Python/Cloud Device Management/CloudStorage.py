@@ -7,22 +7,30 @@ from datetime import datetime,timedelta
 import tempfile
 import csv
 TEMP_DIR = tempfile.gettempdir()
+from matplotlib import pyplot as plt
+import numpy as np
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service_account.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../service_account.json'
 
 def get_cloud_files():
     storage_client = storage.Client()
-    listOffileNames = list_blobs("mqtt_data")
-    bucket_name = "mqtt_data"
+    PREFIX = "EnergyData"
+    listOffileNames = list_blobs("mqtt_data_1")
+    print(listOffileNames)
+    filesOfInterest = [file for file in listOffileNames if PREFIX in file]
+    print(filesOfInterest)
+    bucket_name = "mqtt_data_1"
     bucket = storage_client.bucket(bucket_name)
-    for file in listOffileNames:
+
+    for file in filesOfInterest:
         print(f"Working on blob {file}")
-        newFileName = file.split("Z")[0].replace(":", "-").split(".")[0]
+        # newFileName = file.split("Z")[0].replace(":", "-").split(".")[0]
+
         source_blob_name = file
         blob = bucket.blob(source_blob_name)
-        destination_file_name = f"MQTT_data/{newFileName}.txt"
+        destination_file_name = f"../Downloaded Data/{file}"
         blob.download_to_filename(destination_file_name)
-        print("Donwload completed")
+        print("Download completed")
 
 
 
@@ -74,6 +82,93 @@ def plot_data():
 
     q = data.values
 
+
+
+def cloud_storage_to_dataframe():
+    DIR = "../Downloaded Data"
+    files = os.listdir(DIR)
+    print(files)
+
+    allData = ""
+    for file in files:
+        with open(f"{DIR}/{file}","r") as f:
+            data = f.read()
+            allData += data
+            # print(data)
+    # print(allData)
+
+    D = allData.split("\n")
+
+    # print(D)
+    df = pd.DataFrame(D)
+    df = df[0].str.split(";", expand=True)
+    df = df.iloc[:, 0:6]
+    df.columns  = [
+            "V_a",
+            "f",
+            "P_t",
+            "S_t",
+            "E_t",
+            "Epoch"
+        ]
+
+    df = clean_data(df)
+    df.to_csv("DATA.csv")
+
+
+def clean_data(df):
+
+    df = df[df["V_a"].str.contains("connected") == False]
+
+    for col in df.columns.values:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    df.loc[df["Epoch"].isnull(), df.columns] = np.nan   # replace whole row with NAN if epoch is nan
+    df.loc[df["Epoch"] < 1e9, df.columns] = np.nan      # replaces whole column
+    df.loc[df['Epoch'] > 1e10, 'Epoch'] = np.nan        # replaces whole column
+    df["Epoch"] = df["Epoch"].interpolate(method="linear")
+
+    df.describe()
+
+    replace_value = np.nan
+    index = "V_a"
+    plt.plot(df[index])
+    df[index] = np.where(df[index] > 300, replace_value, df[index])
+    df[index] = np.where(df[index] < 50, replace_value, df[index])
+    plt.plot(df[index])
+
+    index = "f"
+    plt.plot(df[index])
+    df[index] = np.where(df[index] > 100, replace_value, df[index])
+    df[index] = np.where(df[index] < 1, replace_value, df[index])
+    plt.plot(df[index])
+
+    index = "P_t"
+    plt.plot(df[index])
+    df[index] = np.where(df[index] > 12e3, replace_value, df[index])
+    df[index] = np.where(df[index] < 1, replace_value, df[index])
+    plt.plot(df[index])
+
+    index = "S_t"
+    plt.plot(df[index])
+    df[index] = np.where(df[index] > 12e3, replace_value, df[index])
+    df[index] = np.where(df[index] < 1, replace_value, df[index])
+    plt.plot(df[index])
+
+    index = "E_t"
+    plt.plot(df[index])
+    df[index] = np.where(df[index] > 1300, replace_value, df[index])
+    df[index] = np.where(df[index] < 550, replace_value, df[index])
+    plt.plot(df[index])
+
+    plt.show()
+
+    df.index = pd.to_datetime(df["Epoch"].astype(int)+3600*2, unit='s')
+    # del df["Epoch"]
+    df.index.name = "datetime"
+    df = df.sort_index()
+    df = df.fillna(0)
+    return df
 
 def list_buckets():
     """Lists all buckets."""
@@ -169,16 +264,14 @@ def save_to_cloud(mqtt_data):
 
 
 
-
-
-
-
 if __name__ == "__main__":
+    get_cloud_files()
+    cloud_storage_to_dataframe()
     # blobs = list_blobs("mqtt_data_1")
     # print(blobs)
     # # Get blobs in specific subirectory
     # lastFileName = blobs[-2]
 
-    data = "227.702 ;50 ;2977.57 ;2977.69 ;552.393 ;1654772376"
-    save_to_cloud(data)
+    # data = "227.702 ;50 ;2977.57 ;2977.69 ;552.393 ;1654772376"
+    # save_to_cloud(data)
 
