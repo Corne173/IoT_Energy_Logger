@@ -1,8 +1,6 @@
 # How to setup Cloud Function
 
 ---
-Cloud functions use data center resources more efficiently and thus you are charge a lot less. A publishing frequency 
-of 2 seconds using Dataflow results in a monthly bill exceeding $300. 
 
 <br>
 
@@ -26,20 +24,23 @@ of 2 seconds using Dataflow results in a monthly bill exceeding $300.
       - Select your topic for the drop down menu
     - Runtime,build, connections and security
       - Memory allocated : 256MB
-      - Timeout : 30s 
+      - Timeout : 10s (it's a quick operation) 
       - Runtime service account : Select the one you created when you got the
       credentials json file. 
-      - Autoscaling - Max number of instances : 3- you may need to add more if you're posting frequency is higher than 
+      - Autoscaling - Max number of instances : 2- you may need to add more if you're posting frequency is higher than 
       the default (5s)
     - Code
-      - Runtime: Python 3.7
+      - Runtime: Python 3.8 (using 3.9+ can lead to some unpredictable behaviour and dependency issues)
       - Source code: Inline Editor
       - Copy the contents of `main.py` of this repository into the `main.py` of the 
       cloud function
       - Do the same for the `requirements.txt` file
       - Create a new file but clicking on the plus sign (+), name it 
-      `service_account.json` and copy the content of the credintial json file in 
+      `service_account.json` and copy the content of the credential json file in 
       this new file.
+      - Deploy and confirm proper operation. If you get a red tic, it's a syntax error or build error. 
+      Check logs to troubleshoot runtime errors.
+      
 - ### Summnary
   - Before deploying the cloud function, verify that there are 3 files:
     - The `main.py` file containing the google cloud API code
