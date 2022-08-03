@@ -50,6 +50,7 @@ incoming MQTT messages.
      - PubSub to Cloud Storage. Saves data as a text file. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_CloudStorage)
      - PubSub to BigQuery. Appends an SQL database. By far the best choice. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_BigQuery)
 
+
 - Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
     - "Create a new job from Template"
     - Give it a name, select a region, select the template `Pub/Sub to Text Files on Cloud Storage`
@@ -62,7 +63,7 @@ incoming MQTT messages.
       `gs://<yourBucketName>/temp`
       - `Run Job`, navigate to the Jobs tab in Dataflow and check if the status says Running
       
-## ESP 8266 - Node MCU
+## ESP 8266 - Node MCU Setup
 Setup instructions and code found at https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino
 
 Code for Node MCU ESP8266 12E is found in [Esp8266-lwmqtt](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Esp8266-lwmqtt).
