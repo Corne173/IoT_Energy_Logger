@@ -35,7 +35,8 @@ incoming MQTT messages.
          - Select `ES256`
          - Now open [Generate_ec_device_keys.py](https://github.com/Corne173/IoT_Energy_Logger/blob/master/Python/Cloud%20Device%20Management/Generate_ec_device_keys.py)
          and run the script. This will produce a `Private` and `Public` **elipitcal device key** or **EC Key**. 
-         Paste the `Public` key value in the `Authentication` tab. The `Private` will be inserted into the ESP firmware.
+         Paste the `Public` key value in the `Authentication` tab. The `Private` will be inserted into the ESP firmware. 
+         The **EC Keys** are also saved to a text file if you happen to forget to copy them.
          - Finalise by clicking `Create`
    - IMPORTANT - These details must appear as they were created here in the ESP firmware or else it will not work.
    The ESP will report via its serial monitor that it failed to get a JWT. 
