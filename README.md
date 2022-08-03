@@ -8,24 +8,47 @@ Prototype ESP8266 Modbus MQTT Google Cloud Energy Logger.
 
 ## Google Cloud platform setup
 
-- The very first step is to activate the APIs by going to `APIs and Services` and enabling the following:
-  - PubSub (Required)
-  - IoT Core (Required)
-  - Cloud Functions (Optional but this is the best(cheapest) way to go)
-  - BigQuery (Optional but this makes the most sense for datastorage)
-  - Cloud Storage (Optional - Application dependant)
-  - DataFlow (Optional - Application dependant)
-  - Compute Engine (Optional - Application dependant)
+1. Activate APIs
+   - The very first step is to activate the APIs by going to `APIs and Services` and enabling the following:
+     - PubSub (Required)
+     - IoT Core (Required)
+     - Cloud Functions (Optional but this is the best(cheapest) way to go)
+     - BigQuery (Optional but this makes the most sense for datastorage)
+     - Cloud Storage (Optional - Application dependant)
+     - DataFlow (Optional - Application dependant)
+     - Compute Engine (Optional - Application dependant)
 
-If things dont work, dont worry, you'll receive helpful debug messages from the API that will remind you.
-
-Now that the APIs are enabled, set up the Cloud Core Iot functionality which is responsible for
-handling the incoming MQTT messages. 
-- To set up `Cloud Core` you need to:
-  - Create a new Registry with a name of your choosing
-  - Create a new Device with a name of your choosing. This "device" will be the IoT device you are adding, in this case an ESP.
+    If forget one, don't worry, you'll receive helpful debug messages from the API down the line.
 
 
+2. Set up Cloud Core 
+Now that the APIs are enabled, set up the Cloud Core Iot functionality which is responsible for handling the 
+incoming MQTT messages. 
+   - To set up `Cloud Core` you need to:
+     - Create a new **Registry**
+       - Choose an appropriate name
+       - Select a region. I chose `europe-west1` since it's the closest to South Africa. Low latency.
+       - Create a **PubSub topic** for the registry.
+     - Open your new **Registry** and create a new **Device**
+       - Give it a name
+       - Expand the drop down and go to `Authentication`
+         - Select `ES256`
+         - Now open [Generate_ec_device_keys.py](https://github.com/Corne173/IoT_Energy_Logger/blob/master/Python/Cloud%20Device%20Management/Generate_ec_device_keys.py)
+         and run the script. This will produce a `Private` and `Public` **elipitcal device key** or **EC Key**. 
+         Paste the `Public` key value in the `Authentication` tab. The `Private` will be inserted into the ESP firmware.
+         - Finalise by clicking `Create`
+   - IMPORTANT - These details must appear as they were created here in the ESP firmware or else it will not work.
+   The ESP will report via its serial monitor that it failed to get a JWT. 
+   - Alternatively, you can make use to the [Cloud Device Manager.py ](https://github.com/Corne173/IoT_Energy_Logger/blob/master/Python/Cloud%20Device%20Management/Cloud%20Device%20Manager.py) 
+    which will do all of this for you. All you have to do is state the details and copy the `Private` key. 
+   This feature is coming soon and will be used to automate adding new devices. 
+
+
+3. Select your desired `Pipeline`
+   - DataFlow - a codeless pipeline setup. You will pay through your arse for this. Just learn the API.
+   - Cloud function
+     - PubSub to Cloud Storage. Saves data as a text file. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_CloudStorage)
+     - PubSub to BigQuery. Appends an SQL database. By far the best choice. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_BigQuery)
 
 - Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
     - "Create a new job from Template"
