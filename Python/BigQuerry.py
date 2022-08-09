@@ -1,17 +1,89 @@
 import datetime
+import pandas as pd
 from google.cloud import bigquery
+from google.oauth2 import service_account
+import pandas_gbq
 import os
+import time
+
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../service_account.json'
-
-
-
 dataset_id = "BigQuerryStorage"
 table_id = "PotchPower"
 
 
+## Fetching data from the database via queries
+
+
+def query_last(number_entries):
+    """Fetching the last number of entiers from the database and returns it as a pandas dataframe"""
+
+    credentials = service_account.Credentials.from_service_account_file(
+        '../service_account.json',
+    )
+    query = f"""
+        SELECT *
+        FROM `BigQuerryStorage.PotchPower`
+        ORDER BY Epoch DESC
+        LIMIT {number_entries}
+    """
+
+    df = pandas_gbq.read_gbq(query, project_id="mqtt-352311", credentials=credentials)
+    df.index = pd.to_datetime(df["datetime"])
+    del df["datetime"]
+    # print(df)
+    return df
+
+
+def query_to_dataframe(max_entries):
+    """This is my implementation of a BigQuery query that returns the last <max_entries> in pandas dataframe format.
+     It works okay for queries smaller than 10k. Larger than that it starts to suck. Problem is with the dataframe creation
+     process. Its very inefficient"""
+    client = bigquery.Client()
+
+    query = f"""
+        SELECT *
+        FROM `BigQuerryStorage.PotchPower`
+        ORDER BY Epoch DESC
+        LIMIT {max_entries}
+    """
+    print("Sending query")
+    t1 = time.perf_counter_ns()
+    query_job = client.query(query)  # Make an API request.
+    t2 = time.perf_counter_ns()
+    print(f"Query time: {(t2 - t1) * 1e-9}")
+    # create empty dataframe
+    dfGlobal = pd.DataFrame()
+    for row in query_job:
+        # Row values can be accessed by field name or index.
+        # convert rowdata to pandas dataframe and save the transpose.
+        # print(row)
+        df = pd.DataFrame(row[:]).T
+        # get the keys and save them as the col names
+        df.columns = row.keys()
+        #append the dataframa
+        dfGlobal = pd.concat([dfGlobal, df])
+
+    t3 = time.perf_counter_ns()
+    print(f"Query job done: {(t3 - t2) * 1e-9}")
+    print("Query complete")
+    # convert the index to a datetime object. makes life so much easier later on
+    dfGlobal.index = pd.to_datetime(dfGlobal["datetime"])
+    #delete the datetime col. dont need it anymore
+    del dfGlobal["datetime"]
+    # convert the data from strings to numbers
+    dfGlobal = dfGlobal[:].apply(pd.to_numeric)
+    # print(dfGlobal)
+    t4 = time.perf_counter_ns()
+
+    print(f"Dataframe Processing time: {(t4 - t3) * 1e-9}")
+    return dfGlobal
+
+
+## -------- Loading Data into the database ------------------------
 
 
 def to_BigQuerry(data):
+  """Loads data into the BigQuery database. """
   data = parse_data(data)
   client = bigquery.Client()
   dataset_ref = client.dataset(dataset_id)
@@ -20,8 +92,6 @@ def to_BigQuerry(data):
 
   errors = client.insert_rows(table, [data])
   print(errors)
-
-
 
 
 def parse_data(data):
@@ -88,7 +158,6 @@ def csv_to_bigquerry():
     )  # Make an API request.
     job.result()  # Wait for the job to complete.
 
-# csv_to_bigquerry()
 
 def pd_DataFrame_example():
     import datetime
@@ -226,10 +295,23 @@ def CSV_to_bigquery():
     destination_table = client.get_table(table_id)  # Make an API request.
     print("Loaded {} rows.".format(destination_table.num_rows))
 
-# qweqwe()
+
 
 
 if __name__ == "__main__":
-    csv_to_bigquerry()
+    # # csv_to_bigquerry()
+
+
+
+    data = query_last(100000)
+
+    import plotly.express as px
+    t5 = time.perf_counter_ns()
+    fig = px.line(data)
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.show()
+    t6 = time.perf_counter_ns()
+    print(f"Displaying processing time: {(t6 - t5) * 1e-9}")
+
 
 
