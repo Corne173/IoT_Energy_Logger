@@ -14,6 +14,7 @@ of 2 seconds using Dataflow results in a monthly bill exceeding $300.
     - Navigate into the newly created service account, goto the `KEYS` tab and add a
     `JSON` key. 
     - Download the json file. The content of this file will be used when creating the cloud function
+    - Read [documentation](https://cloud.google.com/docs/authentication/getting-started) for more details
 - ### Create `Cloud Function`
   - Navigate to the `Cloud Function` tab
   - `+ CREATE FUNCTION`

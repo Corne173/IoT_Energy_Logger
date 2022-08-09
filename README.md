@@ -46,13 +46,19 @@ incoming MQTT messages.
 
 
 3. Select your desired `Pipeline`
-   - DataFlow - a codeless pipeline setup. You will pay through your arse for this. Just learn the API.
-   - Cloud function
-     - PubSub to Cloud Storage. Saves data as a text file. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_CloudStorage)
-     - PubSub to BigQuery. Appends an SQL database. By far the best choice. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_BigQuery)
+   - DataFlow - a codeless pipeline setup. It's very expensive($300/pm). Just learn the API.
+   - CloudFunctions
+     - PubSub to Cloud Storage. Saves data as a text file. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_CloudStorage).
+     CloudStorage is quite expensive if you start scaling up the size of your project. You are not only charged for storing your data
+      but also retrieving that data from nearline storage. Since this function has to read all the data from the last CSV, append one line to it
+     and rewrite the file, this is very inefficient and expensive over time($30/pm). 
+     - PubSub to BigQuery. Appends an SQL database. By far the best choice. Code and instructions [here](https://github.com/Corne173/IoT_Energy_Logger/tree/master/Google%20Cloud%20Function/PubSub_to_BigQuery). 
+     For one device, posting every 10s, it's basically free. ie it costs $0.00. You get 10Gb storage and 1T processing per month for FREE.
+     [Read more here](https://cloud.google.com/bigquery/pricing#free-tier)
 
 
-- Setup `DataFlow` pipeline from MQTT payload to Cloud Storage
+
+- Setup `DataFlow` pipeline from MQTT payload to Cloud Storage. For those how are interested.
     - "Create a new job from Template"
     - Give it a name, select a region, select the template `Pub/Sub to Text Files on Cloud Storage`
     - Required parameters:
@@ -64,6 +70,7 @@ incoming MQTT messages.
       `gs://<yourBucketName>/temp`
       - `Run Job`, navigate to the Jobs tab in Dataflow and check if the status says Running
       
+
 ## ESP 8266 - Node MCU Setup
 Setup instructions and code found at https://github.com/GoogleCloudPlatform/google-cloud-iot-arduino
 
@@ -117,25 +124,23 @@ The SMD120 CT
 
 - I suspect that there is an Interrupt Service Routine(ISR) from the Wifi operations that interrupts serial processes 
 which leads to data loss. This is an intermittent issue but one that requires attention. Disabling the global 
-ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial.
-- Using the `DataFlow` service is very expensive especially at sub minute data collection interval(lol basically any interval). 
-`DataFlow` acts as a `pipeline` from the `PubSub` Topic data to `Cloud Storage`.
-As it uses a Virtual Machine to accomplish this, you are charged for the CPU time, RAM and storage that the VM uses.
-A better alternative is to use serverless `Cloud Functions`.
-- The MODBUS CRC16 calculation in firmware still need to be fixed. Modbus commands are hardcode with CRC already calculated.
-Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort. 
-As it stands now, it requires a quirky serial print of the modbus command in hex format for it to work???... why the F, could not fathom
+ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial. #Update - The issue has 
+concerning, "gone away by itself" after "fiddling" with the wires. Now its has been operating without fault for 2 weeks straight.
+With that being said, the wired connections are made with hobbies jumper cables not known for its signal integrity.
+- The MODBUS CRC16(16 bit Cyclic Redundancy Check) calculation in firmware still need to be fixed. Modbus commands are
+hardcode with CRC already calculated. Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort. 
+As it stands now, it requires a quirky serial print of the modbus command in hex format for it to work???... 
+why the on gods green earth that makes it work is beyond me.
 - When there is a power interruption and your router reboots, the ESP will not be able to find the SSID of your network
  and it will cause the ESP to hang and not join your network when the router has rebooted. Pressing issue if you're in SA
 
 ## Future Work
+- ~~Python data visualisation~~
 - Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
 - Add implementation for Raspberry Pi
 - Add a web server/web page that displays current and past energy usage with some analytics and trends.
-- Add Python API to setup Google Cloud Platform faster.
-Also less chance to make a mistake or to forget a step.
-- Add Wifi manager so that you dont have to hardcode wifi credintials
-- Auto setup a new MQTT device - Will take a bit of work to get right
+- ~~Add Wifi manager so that you dont have to hardcode wifi credintials~~
+- Auto set up a new MQTT device
   - Will have to:
     - Modify Wifi manager sketch to give the option to specify details about the device
     - Add another cloud function triggered by HTTP, which creates a new registry(if device is in a different location)
@@ -146,4 +151,5 @@ Also less chance to make a mistake or to forget a step.
       - Creates new PubSub topic 
       - Creates new cloud function that acts as a pipeline between the PubSub data and cloud storage. OORRRR use the same cloud function pipeline and pass an extra argument to it(the topic name? device name?) that directs the output to the correct bucket.
 - Add PubSub commands to select which energy parameters to read.
+- Figure out how to scale adding new devices. 
     
