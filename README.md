@@ -125,22 +125,22 @@ The SMD120 CT
 - I suspect that there is an Interrupt Service Routine(ISR) from the Wifi operations that interrupts serial processes 
 which leads to data loss. This is an intermittent issue but one that requires attention. Disabling the global 
 ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial. #Update - The issue has 
-concerning, "gone away by itself" after "fiddling" with the wires. Now its has been operating without fault for 2 weeks straight.
+concerningly, "gone away by itself" after "fiddling" with the wires. Now its has been operating without fault for 2 weeks straight.
 With that being said, the wired connections are made with hobbies jumper cables not known for its signal integrity.
 - The MODBUS CRC16(16 bit Cyclic Redundancy Check) calculation in firmware still need to be fixed. Modbus commands are
-hardcode with CRC already calculated. Its fine for my purposes, but when using a 3 phase energy meter, having the CRC calculation working will save a lot of effort. 
-As it stands now, it requires a quirky serial print of the modbus command in hex format for it to work???... 
-why the on gods green earth that makes it work is beyond me.
+hardcode with CRC already calculated. Its fine for my purposes, but when using a 3 phase energy meter, having the 
+CRC calculation working will save a lot of effort. As it stands now, it requires a quirky serial 
+print of the modbus command in hex format for it to work???... why the on gods green earth that makes it work is beyond me.
 - When there is a power interruption and your router reboots, the ESP will not be able to find the SSID of your network
  and it will cause the ESP to hang and not join your network when the router has rebooted. Pressing issue if you're in SA
 
 ## Future Work
 - ~~Python data visualisation~~
 - Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
-- Add implementation for Raspberry Pi
+- Add implementation for Raspberry Pi - To replace ESP. 
 - Add a web server/web page that displays current and past energy usage with some analytics and trends.
 - ~~Add Wifi manager so that you dont have to hardcode wifi credintials~~
-- Auto set up a new MQTT device
+- Auto set up a new MQTT device. Must be scalable.
   - Will have to:
     - Modify Wifi manager sketch to give the option to specify details about the device
     - Add another cloud function triggered by HTTP, which creates a new registry(if device is in a different location)
@@ -151,5 +151,10 @@ why the on gods green earth that makes it work is beyond me.
       - Creates new PubSub topic 
       - Creates new cloud function that acts as a pipeline between the PubSub data and cloud storage. OORRRR use the same cloud function pipeline and pass an extra argument to it(the topic name? device name?) that directs the output to the correct bucket.
 - Add PubSub commands to select which energy parameters to read.
-- Figure out how to scale adding new devices. 
+- Custom PCB that contains
+  - 230V->3.3V
+  - MAX458
+  - ESP 32 or 8266
+  - Option for LoRa or ZigBee
+
     

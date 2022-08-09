@@ -2,7 +2,8 @@
 
 ---
 This Python folder contains all the code used to get this project to where it is. As the project and its
-functionality evolves, so will the code base. 
+functionality evolves, so will the code base. `Python 3.9` is used throughout. Couldnt be bothered debugging
+into stability issue with 3.10+. 
 
 ## `BigQuery.py`
 Contains scripts that:
