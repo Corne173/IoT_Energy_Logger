@@ -85,7 +85,7 @@ def plot_data():
 
 
 def cloud_storage_to_dataframe():
-    DIR = "../Downloaded Data"
+    DIR = "Downloaded Data"
     files = os.listdir(DIR)
     print(files)
 
