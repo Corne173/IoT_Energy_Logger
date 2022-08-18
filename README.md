@@ -117,19 +117,36 @@ The SMD120 CT
 
 <img alt="SMD230 Product sheet" src="https://ae01.alicdn.com/kf/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj/201669291/HTB1MM.XKFXXXXX3XVXXq6xXFXXXj.jpg?size=136937&amp;height=1067&amp;width=1000&amp;hash=ccb6c38d63b40e63e373261727f7feaf" width="500"/>
 
+## Over The Air(OTA) updates
+
+Firmware can be updated without a wired connection by flashing new firmware via Wifi. 
+First:
+- Convert the firmware to a binary file. This is done in the Arduino IDE under `Sketch`->`Export compiled Binary`.
+- Put the ESP in flashing mode by connecting PIN D5 (pin 14 internal) to GROUND(0V). 
+- The ESP will create an access point with SSID `AutoConnectAP` and password `password`. 
+- Connect to the access point, go to `Update` and upload the binary file. 
 
 
 
 ## Current Issues 
 
-- I suspect that there is an Interrupt Service Routine(ISR) from the Wifi operations that interrupts serial processes 
-which leads to data loss. This is an intermittent issue but one that requires attention. Disabling the global 
-ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial. #Update - The issue has 
-concerningly, "gone away by itself" after "fiddling" with the wires. Now its has been operating without fault for 2 weeks straight.
-With that being said, the wired connections are made with hobbies jumper cables not known for its signal integrity.
+- **DATA corruption** 
+  - I suspect that there is an Interrupt Service Routine(ISR) from the Wifi operations that interrupts serial processes 
+  which leads to data loss. This is an intermittent issue but one that requires attention. Disabling the global 
+  ISR during serial operations causes the ESP to hang. Thinking about moving away from SoftwareSerial. 
+  - #Update - The issue has concerningly, "gone away by itself" after "fiddling" with the wires. Now its has been operating without fault for 2 weeks straight.
+  With that being said, the wired connections are made with hobbies jumper cables not known for its signal integrity.
+  - #Update - I am starting to believe that I have no idea what the actual problem is. The single phase meter works fine, 
+    the 3 phase meter seems to have TX and RX issues. It appears that the energy meter doesnt receive a(correct) command. As
+    per the datasheet, **"The slave will not respond at all if there is an error with the parity or CRC of the query."** 
+    This provides some indication that a bit wise error may have occurred. On the very odd occasion, 
+    a very small or very large value is received from the energy meter. 1.035x10^-36 or 2.58x10^38. This gives more indication 
+  of a bit wise error. Running a byte count on the RX values will confirm this.
+- Google is **discontinuing** `Cloud Core` from August 2023 and provide NO alternavive service in their announcement. Thanks.
+It is unclear whether they have another service that achieves the same goals. If not, then AWS here I come. 
 - The MODBUS CRC16(16 bit Cyclic Redundancy Check) calculation in firmware still need to be fixed. Modbus commands are
-hardcode with CRC already calculated. Its fine for my purposes, but when using a 3 phase energy meter, having the 
-CRC calculation working will save a lot of effort. As it stands now, it requires a quirky serial 
+hardcode with CRC already calculated using this [online calculator](https://crccalc.com/).  Its fine for my purposes, 
+but if there any prospects of more functionality, this will have to be fixed. As this issue stands now, it requires a quirky serial 
 print of the modbus command in hex format for it to work???... why the on gods green earth that makes it work is beyond me.
 - When there is a power interruption and your router reboots, the ESP will not be able to find the SSID of your network
  and it will cause the ESP to hang and not join your network when the router has rebooted. Pressing issue if you're in SA
@@ -137,7 +154,9 @@ print of the modbus command in hex format for it to work???... why the on gods g
 ## Future Work
 - ~~Python data visualisation~~
 - Add local MQTT Server option by means of Raspberry Pi, with either local or cloud storage
-- Add implementation for Raspberry Pi - To replace ESP. 
+- Add implementation for Raspberry Pi - To replace ESP. ESPs are dirt cheap and easy to get compared to Pi's but you
+end up paying for it in development time... a lot of it. I want to do remote firmware deployment but it will take time. 
+It's very easy to do remote firmware deployment on a Pi...comparatively.
 - Add a web server/web page that displays current and past energy usage with some analytics and trends.
 - ~~Add Wifi manager so that you dont have to hardcode wifi credintials~~
 - Auto set up a new MQTT device. Must be scalable.
