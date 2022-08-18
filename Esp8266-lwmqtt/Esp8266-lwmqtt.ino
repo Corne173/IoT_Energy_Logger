@@ -55,7 +55,7 @@ char P_b[]             = {0x01,0x04,0x00,0x0E,0x00,0x02,0x10,0x08};
 char P_c[]             = {0x01,0x04,0x00,0x10,0x00,0x02,0x70,0x0E};
 
 char Q_a[]             = {0x01,0x04,0x00,0x18,0x00,0x02,0xF1,0xCC};
-char Q_b[]             = {0x01,0x04,0x00,0x1A,0x00,0x02,0x0C,0x50};
+char Q_b[]             = {0x01,0x04,0x00,0x1A,0x00,0x02,0x50,0x0C};
 char Q_c[]             = {0x01,0x04,0x00,0x1C,0x00,0x02,0xB0,0x0D};
 
 char S_a[]             = {0x01,0x04,0x00,0x12,0x00,0x02,0xD1,0xCE};
@@ -114,23 +114,27 @@ void loop()
   {
     digitalWrite(LED_1,1);                                           // Debug LED 1 - Turns ON when successfully connected to Wifi 
     current_unix_time = intToString( time(nullptr));                 // Debug LED 2 - Turns ON when successfully connected MQTT server
+    
     mqqt_message_payload = "";                                       // Clears the message payload 
-    send(V_a,sizeof(V_a));
-    send(V_b,sizeof(V_b));
-    send(V_c,sizeof(V_c));
+    send(V_a,sizeof(V_a),"V_a");
+    send(V_b,sizeof(V_b),"V_b");                                          // Gets voltage per phase
+    send(V_c,sizeof(V_c),"V_c");
 
-    send(P_a,sizeof(P_a));
-    send(P_b,sizeof(P_b));
-    send(P_c,sizeof(P_c));
+    send(P_a,sizeof(P_a),"P_a");
+    send(P_b,sizeof(P_b),"P_b");                                          // Gets real power per phase
+    send(P_c,sizeof(P_c),"P_c");
+
+    send(Q_a,sizeof(Q_a),"Q_a");
+    send(Q_b,sizeof(Q_b),"Q_b");                                          // Gets active power 
+    send(Q_c,sizeof(Q_c),"Q_c");
     
-    send(E_a_import,sizeof(E_a_import));
-    send(E_b_import,sizeof(E_b_import));
-    send(E_c_import,sizeof(E_c_import));
+    send(E_a_import,sizeof(E_a_import),"E_a");
+    send(E_b_import,sizeof(E_b_import),"E_b");                            // Gets energy imported per phase
+    send(E_c_import,sizeof(E_c_import),"E_c");
     
-    send(E_total_import,sizeof(E_total_import));
-    
-    mqqt_message_payload += current_unix_time;                        // adds unix time to msg payload
-    Serial.println(mqqt_message_payload);                           // debug message
+    mqqt_message_payload += "T: " +  String(current_unix_time) + ";";                      // adds unix time to msg payload
+
+    //Serial.println(mqqt_message_payload);                           // debug message
     publishTelemetry(mqqt_message_payload);                         // Sends data to cloud MQTT server
     mqqt_message_payload = "";                                        // Clears the message payload buffer for the next round    
     digitalWrite(LED_1,0);                                            // Turns debug LED ON to indicate energy coms completed
@@ -152,7 +156,7 @@ String floatToString(float number){
 // converts float to string
 String intToString(int number){
   char string[12]; //size of the number
-  sprintf(string, "%d", number); // can also use itoa
+  sprintf(string, "%d", number); // can also use itoa. no idea why I didn't. Theres also a method called "String()" that does the same thing. Thank you Ardiuno
   return string;
 }
 
@@ -165,7 +169,7 @@ float bytesArr_to_float(char *serialBuffer){
 
 //--------------------------------- Request DATA from meter ---------------------------------------------
 // sends commands to energy meter and automatically listens for response. Watchdog timer 
-void send(char *data, int len){
+void send(char *data, int len, String type){
   // Receiver Output Enable(RE) active LOW
   // Driver Output Enable (DE) active HIGH
   // To write, pull DE and RE HIGH 
@@ -177,12 +181,12 @@ void send(char *data, int len){
   softSerial.write(data,len);                                    
   digitalWrite(RE,!state);                     //RE low = enabled - so that it can listen for the reply
   digitalWrite(DE,!state);                     //DE low = disabled
-  receive();                                // listens for response
+  receive(type);                               // listens for response
 
 }
 
 //--------------------------------- Listen for DATA from meter ---------------------------------------------
-void receive(){
+void receive(String type){
   char serialBuffer[9];
   int i = 0;
   delay(20);                      //wait a bit for the meter to respond
@@ -214,15 +218,16 @@ void receive(){
    
     float value = bytesArr_to_float( serialBuffer );    //convert data to float
     String dataMetric = floatToString(value);           // converts float to String 
-    
-    mqqt_message_payload += dataMetric + " ;" ;         // builds the paidload string
+
+    // the "type" is used to create a sudo json type string
+    mqqt_message_payload +=  type +": " +  dataMetric + ";" ;         // builds the paidload string
     
     //Serial.println(type +": " +  dataMetric + ";" );  // for debugging
   }
 
   //Serial.println(data.asFloat);                       // for debugging
-  // delay gives the energy meter time to process the next command. Meter does not respond if there is no delay
-  delay(50);
+  // delay gives the energy meter time to process the next command. Meter does not respond if there is no delay. 50ms results in some errors 
+  delay(100);
 }
 
 
