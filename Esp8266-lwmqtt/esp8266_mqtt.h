@@ -125,12 +125,14 @@ static void setupWifi()
   bool res;
   res = wm.autoConnect("AutoConnectAP","password"); // password protected ap
 
-  while(!res){
+  // enters loop and restarts ESP when not connected
+  while(!res){ 
     Serial.println("Failed to connect");
     digitalWrite(2,1);
     delay(100);
     digitalWrite(2,0);
     delay(100);
+    ESP.restart(); 
 }
 
   // the 2*3600 sets the time zone, +2 GMT
